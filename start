@@ -1,0 +1,32 @@
+#!/bin/sh
+
+[[ "$TRACE" ]] && set -x
+: ${PORT:=5555}
+
+json_to_line() {
+  while read -n 1 c; do
+    if [[ "}" == "$c"  ]]; then
+      echo "${json}}"
+      json=''
+    else
+      json="${json}${c}"
+    fi
+  done
+}
+
+proxy_sock_to_port() {
+  socat -d -d TCP-L:${PORT},fork UNIX:/var/run/docker.sock &>/dev/null &
+}
+
+main() {
+  if ! [ -e /var/run/docker.sock ]; then
+    echo "docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock sequenceiq/docker-events /start"
+    exit 1
+  fi
+
+  proxy_sock_to_port
+  echo "---> Started to listen to Docker events" 1>&2
+  curl -sN 127.0.0.1:5555/events | json_to_line |jq .
+}
+
+main "$@"
