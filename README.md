@@ -10,7 +10,7 @@ $(docker run sequenceiq/docker-events)
 
 ## tl;dr
 
-In the background what id does:
+In the background what it does:
 
 - starts a **socat** to proxy to make /var/run/docker.sock available as a usual tcp port.
 - start **curl** to connect to docker daemon via the proxied docker.sock
